@@ -1,0 +1,154 @@
+<div class="container mt-4">
+    <h2>Tipos de Equipo</h2>
+    <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createTipoEquipoModal">Crear categoria</button>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% tiposEquipo.forEach(tipo => { %>
+                <tr>
+                    <td><%= tipo.ID_Tipo_Equipo %></td>
+                    <td><%= tipo.Nombre_Tipo_Equipo %></td>
+                    <td>
+                        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editTipoEquipoModal" 
+                            onclick="fillEditTipoEquipoForm('<%= tipo.ID_Tipo_Equipo %>', '<%= tipo.Nombre_Tipo_Equipo %>')">Editar</button>
+                        <button class="btn btn-danger" onclick="confirmDeleteTipoEquipo('<%= tipo.ID_Tipo_Equipo %>')">Eliminar</button>
+                    </td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="createTipoEquipoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="createTipoEquipoForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Crear Tipo de Equipo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="createTipoEquipoName" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="createTipoEquipoName" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editTipoEquipoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editTipoEquipoForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Tipo de Equipo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editTipoEquipoID">
+                    <div class="mb-3">
+                        <label for="editTipoEquipoName" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="editTipoEquipoName" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Llenar formulario de edición
+function fillEditTipoEquipoForm(id, name) {
+    document.getElementById('editTipoEquipoID').value = id;
+    document.getElementById('editTipoEquipoName').value = name;
+}
+
+// Manejar formulario de creación
+document.getElementById('createTipoEquipoForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const name = document.getElementById('createTipoEquipoName').value;
+
+    try {
+        const response = await fetch('/tipoEquipo/createTipoEquipo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ Nombre_Tipo_Equipo: name })
+        });
+
+        if (response.ok) {
+            alert('Categoria creada exitosamente');
+            location.reload();
+        } else {
+            alert('Error al crear la categoria');
+        }
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+// Manejar formulario de edición
+document.getElementById('editTipoEquipoForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const id = document.getElementById('editTipoEquipoID').value;
+    const name = document.getElementById('editTipoEquipoName').value;
+
+    try {
+        const response = await fetch(`/tipoEquipo/editTipoEquipo/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ Nombre_Tipo_Equipo: name })
+        });
+
+        if (response.ok) {
+            alert('Categoria editada exitosamente');
+            location.reload();
+        } else {
+            alert('Error al actualizar el tipo de equipo');
+        }
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+// Confirmar eliminación
+async function confirmDeleteTipoEquipo(tipoEquipoID) {
+    if (confirm('¿Estás seguro de que deseas eliminar este tipo de equipo?')) {
+        try {
+            const response = await fetch(`/tipoEquipo/deleteTipoEquipo/${tipoEquipoID}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('Tipo de equipo eliminado correctamente.');
+                location.reload();
+            } else {
+                alert(result.message); // Mostrar el mensaje del servidor
+            }
+        } catch (error) {
+            console.error('Error al eliminar el tipo de equipo:', error);
+            alert('Ocurrió un error al intentar eliminar el tipo de equipo.');
+        }
+    }
+}
+
+
+</script>

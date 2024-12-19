@@ -1,5 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
+const Equipo = require('./equipo');
+const Usuario = require('./user');
 
 const EquipoUsuario = sequelize.define('EquipoUsuario', {
     ID_Equipo_FK: {
@@ -23,5 +25,6 @@ const EquipoUsuario = sequelize.define('EquipoUsuario', {
     tableName: 'Equipo_Usuario',
     timestamps: false
 });
+
 
 module.exports = EquipoUsuario;

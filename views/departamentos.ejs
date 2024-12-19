@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Departamentos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Gestión de Departamentos</h1>
+        <!-- Botón para abrir el modal de creación -->
+        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createDeptModal">Crear Departamento</button>
+        <!-- Tabla de departamentos -->
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% departamentos.forEach(departamento => { %>
+                <tr>
+                    <td><%= departamento.ID_Departamento %></td>
+                    <td><%= departamento.Nombre_Departamento %></td>
+                    <td>
+                        <!-- Botón para editar -->
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editDeptModal" 
+                            onclick="fillEditForm('<%= departamento.ID_Departamento %>', '<%= departamento.Nombre_Departamento %>')">Editar</button>
+                        <!-- Botón para eliminar -->
+                        <button class="btn btn-danger" onclick="confirmDelete('<%= departamento.ID_Departamento %>')">Eliminar</button>
+                    </td>
+                </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal de creación de departamento -->
+    <div class="modal fade" id="createDeptModal" tabindex="-1" aria-labelledby="createDeptModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="createDeptForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createDeptModalLabel">Crear Departamento</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="nombreDept" class="form-label">Nombre del Departamento</label>
+                            <input type="text" class="form-control" id="nombreDept" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Crear</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de edición de departamento -->
+    <div class="modal fade" id="editDeptModal" tabindex="-1" aria-labelledby="editDeptModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="editDeptForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editDeptModalLabel">Editar Departamento</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="editDeptID">
+                        <div class="mb-3">
+                            <label for="editNombreDept" class="form-label">Nombre del Departamento</label>
+                            <input type="text" class="form-control" id="editNombreDept" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Código AJAX para manejar las funciones CRUD de los departamentos
+    
+        // Crear Departamento
+        document.getElementById('createDeptForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const nombreDept = document.getElementById('nombreDept').value;
+    
+            try {
+                const response = await fetch('/departamentos/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ Nombre_Departamento: nombreDept })
+                });
+    
+                const result = await response.json();
+    
+                if (response.ok) {
+                    alert('Departamento creado exitosamente');
+                    location.reload();
+                } else {
+                    alert(`Error: ${result.message}`);
+                }
+            } catch (error) {
+                console.error('Error al crear el departamento:', error);
+                alert('Error al crear el departamento');
+            }
+        });
+    
+        // Editar Departamento
+        document.getElementById('editDeptForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+    
+            const ID_Departamento = document.getElementById('editDeptID').value;
+            const Nombre_Departamento = document.getElementById('editNombreDept').value;
+    
+            try {
+                const response = await fetch('/departamentos/edit', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ID_Departamento, Nombre_Departamento })
+                });
+    
+                const result = await response.json();
+    
+                if (response.ok) {
+                    alert('Departamento editado exitosamente');
+                    location.reload();
+                } else {
+                    alert(`Error: ${result.message}`);
+                }
+            } catch (error) {
+                console.error('Error al editar el departamento:', error);
+                alert('Error al editar el departamento');
+            }
+        });
+    
+        // Eliminar Departamento
+        function confirmDelete(ID_Departamento) {
+            if (confirm('¿Estás seguro de que deseas eliminar este departamento?')) {
+                fetch(`/departamentos/delete/${ID_Departamento}`, { method: 'DELETE' })
+                    .then(async (response) => {
+                        const result = await response.json();
+    
+                        if (response.ok) {
+                            alert('Departamento eliminado exitosamente');
+                            location.reload();
+                        } else {
+                            alert(`Error: ${result.message}`);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error al eliminar el departamento:', error);
+                        alert('Error al eliminar el departamento');
+                    });
+            }
+        }
+    
+        // Rellenar formulario de edición
+        function fillEditForm(ID_Departamento, Nombre_Departamento) {
+            document.getElementById('editDeptID').value = ID_Departamento;
+            document.getElementById('editNombreDept').value = Nombre_Departamento;
+        }
+    </script>
+
+</body>
+</html>

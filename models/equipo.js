@@ -46,5 +46,16 @@ Equipo.getAll = async () => {
     }
 };
 
+// Método personalizado para obtener un equipo por su ID
+Equipo.findById = async (ID_Equipo) => {
+    try {
+      const equipo = await Equipo.findByPk(ID_Equipo);
+      console.log("Modelo buscando equipo por ID:" , ID_Equipo)
+      return equipo;
+    } catch (error) {
+      throw error;
+    }
+  };
+  
 
 module.exports = Equipo;

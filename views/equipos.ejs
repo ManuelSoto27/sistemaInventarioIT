@@ -1,24 +1,392 @@
-<main class="container mt-4">
-    <h1 class="mb-4">Listado de Equipos</h1>
-    <table class="table table-striped table-hover">
-      <thead class="thead-dark">
-        <tr>
-          <th>ID</th>
-          <th>Nombre</th>
-          <th>Descripción</th>
-          <th>Categoría</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% equipos.forEach(equipo => { %>
-          <tr>
-            <td><%= equipo.ID_Equipo %></td>
-            <td><%= equipo.Marca_Equipo %></td>
-            <td><%= equipo.Modelo_Equipo %></td>
-            <td><%= equipo.Estado_Equipo %></td>
-          </tr>
-        <% }); %>
-      </tbody>
-    </table>
-  </main>
+<h1>Lista de Equipos</h1>
+
+<div class="container my-4">
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Activos</h5>
+          <p class="card-text fs-4" id="activoCount">0</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">En Reparación</h5>
+          <p class="card-text fs-4" id="enReparacionCount">0</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Retirados</h5>
+          <p class="card-text fs-4" id="retiradoCount">0</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Botón para abrir el modal de creación -->
+<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createEquipoModal">
+  Crear Nuevo Equipo
+</button>
+ <!-- Link a /departamentos -->
+ <a href="/tipoEquipo" class="btn btn-secondary">Categorias</a>
+ <!-- Barra de búsqueda -->
+ <div class="row mb-3 mt-3">
+  <div class="col-md-6">
+      <input type="text" id="searchInput" class="form-control" placeholder="Buscar por marca o modelo..." oninput="searchEquipos()">
+  </div>
+</div>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Marca</th>
+      <th>Modelo</th>
+      <th>Tipo</th>
+      <th>Número de Serie</th>
+      <th>Estado</th>
+      <th>Asignado a</th> <!-- Nueva columna -->
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody id="equiposTableBody">
+    <% equipos.forEach(equipo => { %>
+      <tr>
+        <td><%= equipo.ID_Equipo %></td>
+        <td><%= equipo.Marca_Equipo %></td>
+        <td><%= equipo.Modelo_Equipo %></td>
+        <td><%= equipo.tipoEquipo ? equipo.tipoEquipo.Nombre_Tipo_Equipo : 'N/A' %></td>
+        <td><%= equipo.NumeroSerie_Equipo %></td>
+        <td><%= equipo.Estado_Equipo %></td>
+        
+        <!-- Mostrar el nombre del usuario asignado, si existe -->
+        <td>
+          <%= equipo.usuariosAsignados.length > 0 
+                ? equipo.usuariosAsignados[0].usuario.Nombre_Usuario 
+                : 'N/A' %>
+        </td>
+        
+
+        <td>
+          <!-- Botón para editar -->
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editEquipoModal" onclick="fillEditForm('<%= equipo.ID_Equipo %>', '<%= equipo.Marca_Equipo %>', '<%= equipo.Modelo_Equipo %>', '<%= equipo.Tipo_Equipo_FK %>', '<%= equipo.NumeroSerie_Equipo %>', '<%= equipo.Estado_Equipo %>')">Editar</button>
+
+          <!-- Botón para eliminar -->
+          <button class="btn btn-danger" onclick="confirmDelete('<%= equipo.ID_Equipo %>')">Eliminar</button>
+        </td>
+      </tr>
+    <% }); %>
+  </tbody>
+</table>
+
+
+<!-- Modal para crear equipo -->
+<div class="modal fade" id="createEquipoModal" tabindex="-1" aria-labelledby="createEquipoModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createEquipoModalLabel">Nuevo Equipo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="createEquipoForm">
+          <div class="mb-3">
+            <label for="marca" class="form-label">Marca</label>
+            <input type="text" class="form-control" id="marca" required>
+          </div>
+          <div class="mb-3">
+            <label for="modelo" class="form-label">Modelo</label>
+            <input type="text" class="form-control" id="modelo" required>
+          </div>
+          <div class="mb-3">
+            <label for="tipo" class="form-label">Tipo</label>
+            <select class="form-select" id="tipo" required>
+              <option value="">Seleccionar Tipo</option>
+              <% tiposEquipo.forEach(tipo => { %>
+                <option value="<%= tipo.ID_Tipo_Equipo %>"><%= tipo.Nombre_Tipo_Equipo %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="numeroSerie" class="form-label">Número de Serie</label>
+            <input type="text" class="form-control" id="numeroSerie" required>
+          </div>
+          <div class="mb-3">
+            <label for="estado" class="form-label">Estado</label>
+            <select class="form-select" id="estado" required>
+              <option value="Activo">Activo</option>
+              <option value="En reparación">En reparación</option>
+              <option value="Retirado">Retirado</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Crear Equipo</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal para editar equipo -->
+<div class="modal fade" id="editEquipoModal" tabindex="-1" aria-labelledby="editEquipoModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editEquipoModalLabel">Editar Equipo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editEquipoForm">
+          <input type="hidden" id="editID">
+          <div class="mb-3">
+            <label for="editMarca" class="form-label">Marca</label>
+            <input type="text" class="form-control" id="editMarca" required>
+          </div>
+          <div class="mb-3">
+            <label for="editModelo" class="form-label">Modelo</label>
+            <input type="text" class="form-control" id="editModelo" required>
+          </div>
+          <div class="mb-3">
+            <label for="editTipo" class="form-label">Tipo</label>
+            <select class="form-select" id="editTipo" required>
+              <option value="">Seleccionar Tipo</option>
+              <% tiposEquipo.forEach(tipo => { %>
+                <option value="<%= tipo.ID_Tipo_Equipo %>"><%= tipo.Nombre_Tipo_Equipo %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="editNumeroSerie" class="form-label">Número de Serie</label>
+            <input type="text" class="form-control" id="editNumeroSerie" required>
+          </div>
+          <div class="mb-3">
+            <label for="editEstado" class="form-label">Estado</label>
+            <select class="form-select" id="editEstado" required>
+              <option value="Activo">Activo</option>
+              <option value="En reparación">En reparación</option>
+              <option value="Retirado">Retirado</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Editar Equipo</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Confirmación de eliminación -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Eliminación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        ¿Estás seguro de que deseas eliminar este equipo?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteButton">Eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function confirmDelete(ID_Equipo) {
+    // Almacenar el ID del equipo para confirmación
+    document.getElementById('confirmDeleteButton').onclick = function() {
+      fetch(`/equipos/delete/${ID_Equipo}`, { method: 'DELETE' })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Si la eliminación fue exitosa, recargar la página
+            alert(data.message);  //Mostrar mensaje de éxito
+            location.reload(); // Recarga la página para reflejar el cambio
+          } else {
+            // Si hubo algún problema, mostrar un mensaje
+            alert(data.message || 'Hubo un error al eliminar el equipo');
+          }
+        })
+        .catch(error => {
+          console.error('Error al eliminar el equipo:', error);
+          alert('Error al eliminar el equipo');
+        });
+    };
   
+    // Mostrar el modal de confirmación
+    new bootstrap.Modal(document.getElementById('confirmDeleteModal')).show();
+  }
+  
+
+// Función para llenar el formulario de edición con los datos del equipo
+function fillEditForm(ID_Equipo, Marca_Equipo, Modelo_Equipo, Tipo_Equipo_FK, NumeroSerie_Equipo, Estado_Equipo) {
+  document.getElementById('editID').value = ID_Equipo;
+  document.getElementById('editMarca').value = Marca_Equipo;
+  document.getElementById('editModelo').value = Modelo_Equipo;
+  document.getElementById('editTipo').value = Tipo_Equipo_FK;
+  document.getElementById('editNumeroSerie').value = NumeroSerie_Equipo;
+  document.getElementById('editEstado').value = Estado_Equipo;
+}
+
+// Enviar el formulario de edición mediante AJAX
+document.getElementById('editEquipoForm').addEventListener('submit', async function(event) {
+  event.preventDefault(); // Previene el envío tradicional del formulario
+
+  const ID_Equipo = document.getElementById('editID').value; // Obtener el ID del equipo desde el formulario
+  const formData = {
+    ID_Equipo: document.getElementById('editID').value,
+    Marca_Equipo: document.getElementById('editMarca').value,
+    Modelo_Equipo: document.getElementById('editModelo').value,
+    Tipo_Equipo_FK: document.getElementById('editTipo').value,
+    NumeroSerie_Equipo: document.getElementById('editNumeroSerie').value,
+    Estado_Equipo: document.getElementById('editEstado').value
+  };
+
+  try {
+    // Enviar la solicitud de edición al servidor
+    const response = await fetch(`/equipos/edit/${ID_Equipo}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      alert('Equipo editado exitosamente');
+      location.reload(); // Recarga la página para reflejar el cambio
+    } else {
+      alert(data.message || 'Hubo un error al editar el equipo');
+    }
+  } catch (error) {
+    console.error('Error al editar el equipo:', error);
+    alert('Error al editar el equipo');
+  }
+});
+
+
+
+  // Este script se encargará de enviar el formulario usando AJAX (fetch API o jQuery)
+  document.getElementById('createEquipoForm').addEventListener('submit', async function(event) {
+    event.preventDefault(); // Previene el envío tradicional del formulario
+
+    const formData = {
+        Marca_Equipo: document.getElementById('marca').value,
+        Modelo_Equipo: document.getElementById('modelo').value,
+        Tipo_Equipo_FK: document.getElementById('tipo').value,
+        NumeroSerie_Equipo: document.getElementById('numeroSerie').value,
+        Estado_Equipo: document.getElementById('estado').value
+    };
+
+    try {
+        const response = await fetch('/equipos/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+        
+        // Ahora comprobamos el campo `success` que se envía desde el backend
+        if (data.success) {
+            alert('Equipo creado exitosamente');
+            // Recarga la página para mostrar el nuevo equipo
+            location.reload();
+        } else {
+            alert(data.message || 'Hubo un error al crear el equipo');
+        }
+    } catch (error) {
+        console.error('Error al crear el equipo:', error);
+        alert('Error al crear el equipo');
+    }
+});
+
+async function searchEquipos() {
+  const query = document.getElementById('searchInput').value;
+
+  try {
+    const response = await fetch(`/equipos/search?query=${query}`);
+    const equipos = await response.json();
+
+    const tableBody = document.getElementById('equiposTableBody');
+    tableBody.innerHTML = ''; // Limpiar la tabla
+
+    if (!Array.isArray(equipos)) {
+      console.error('La respuesta no es un array:', equipos);
+      alert('Error: La respuesta del servidor no es válida.');
+      return;
+    }
+
+    // Insertar los resultados en la tabla
+    equipos.forEach(equipo => {
+      const row = `
+        <tr>
+          <td>${equipo.ID_Equipo}</td>
+          <td>${equipo.Marca_Equipo}</td>
+          <td>${equipo.Modelo_Equipo}</td>
+          <td>${equipo.tipoEquipo ? equipo.tipoEquipo.Nombre_Tipo_Equipo : 'N/A'}</td>
+          <td>${equipo.NumeroSerie_Equipo}</td>
+          <td>${equipo.Estado_Equipo}</td>
+          <td>
+            ${
+              equipo.usuariosAsignados && equipo.usuariosAsignados.length > 0
+                ? equipo.usuariosAsignados.map(asignacion => 
+                    `${asignacion.usuario.Nombre_Usuario} ${asignacion.usuario.ApellidoPaterno_Usuario}`
+                  ).join(', ')
+                : 'N/A'
+            }
+          </td>
+          <td>
+            <!-- Botón para editar -->
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editEquipoModal" onclick="fillEditForm('${equipo.ID_Equipo}', '${equipo.Marca_Equipo}', '${equipo.Modelo_Equipo}', '${equipo.Tipo_Equipo_FK}', '${equipo.NumeroSerie_Equipo}', '${equipo.Estado_Equipo}')">Editar</button>
+
+            <!-- Botón para eliminar -->
+            <button class="btn btn-danger" onclick="confirmDelete('${equipo.ID_Equipo}')">Eliminar</button>
+          </td>
+        </tr>
+      `;
+      tableBody.insertAdjacentHTML('beforeend', row);
+    });
+
+  } catch (error) {
+    console.error('Error al buscar equipos:', error);
+    alert('Error al buscar equipos.');
+  }
+}
+
+
+async function loadCounters() {
+  try {
+    const response = await fetch('/equipos/countByEstado');
+    const data = await response.json();
+
+    if (!data) {
+      console.error('No se recibieron datos válidos:', data);
+      return;
+    }
+
+    // Actualizar los contadores en el DOM
+    document.getElementById('activoCount').innerText = data.Activo || 0;
+    document.getElementById('enReparacionCount').innerText = data.EnReparacion || 0;
+    document.getElementById('retiradoCount').innerText = data.Retirado || 0;
+  } catch (error) {
+    console.error('Error al cargar los contadores:', error);
+  }
+}
+
+// Ejecutar al cargar la página
+document.addEventListener('DOMContentLoaded', loadCounters);
+
+</script>

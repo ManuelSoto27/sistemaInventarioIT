@@ -1,0 +1,63 @@
+<h1 class="mb-3"><%= title %></h1>
+
+<h3>Equipos Asignados</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID Equipo</th>
+            <th>Marca</th>
+            <th>Modelo</th>
+            <% if (role === 'admin') { %>
+                <th>Acción</th>
+            <% } %>
+        </tr>
+    </thead>
+    <tbody>
+        <% equiposAsignados.forEach(equipo => { %>
+        <tr>
+            <td><%= equipo.ID_Equipo %></td>
+            <td><%= equipo.Marca_Equipo %></td>
+            <td><%= equipo.Modelo_Equipo %></td>
+            <% if (role === 'admin') { %>
+                <<td>
+                    <form action="/equipoUsuario/desasignar" method="POST">
+                        <input type="hidden" name="idUsuario" value="<%= usuario.ID_Usuario %>">
+                        <input type="hidden" name="idEquipo" value="<%= equipo.ID_Equipo %>">
+                        <button type="submit" class="btn btn-danger">Desasignar</button>
+                    </form>
+                </td>
+            <% } %>
+        </tr>
+        <% }) %>
+    </tbody>
+</table>
+
+<% if (role === 'admin') { %>
+    <h3>Asignar Equipo</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID Equipo</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% equiposNoAsignados.forEach(equipo => { %>
+            <tr>
+                <td><%= equipo.ID_Equipo %></td>
+                <td><%= equipo.Marca_Equipo %></td>
+                <td><%= equipo.Modelo_Equipo %></td>
+                <td>
+                    <form action="/equipoUsuario/asignar" method="POST">
+                        <input type="hidden" name="idUsuario" value="<%= usuario.ID_Usuario %>">
+                        <input type="hidden" name="idEquipo" value="<%= equipo.ID_Equipo %>">
+                        <button type="submit" class="btn btn-primary">Asignar</button>
+                    </form>
+                </td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+<% } %>

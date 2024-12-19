@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Gestión de Usuarios</h1>
+        <!-- Botón para abrir el modal de creación -->
+        <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#createUserModal">Crear Usuario</button>
+        <!-- Link a /departamentos -->
+        <a href="/departamentos" class="btn btn-secondary">Departamentos</a>
+
+        <!-- Tabla de usuarios -->
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Departamento</th>
+                    <th>Puesto</th>
+                    <th>Estado</th>
+                    <th>Rol</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% usuarios.forEach(usuario => { %>
+                <tr>
+                    <td><%= usuario.ID_Usuario %></td>
+                    <td><%= usuario.Nombre_Usuario %> <%= usuario.ApellidoPaterno_Usuario %> <%= usuario.ApellidoMaterno_Usuario %></td>
+                    <td><%= usuario.Correo_Usuario %></td>
+                    <!-- Mostrar el nombre del departamento en lugar del ID -->
+                    <td><%= usuario.departamento ? usuario.departamento.Nombre_Departamento : 'No asignado' %></td>
+                    <td><%= usuario.Puesto_Usuario %></td>
+                    <td><%= usuario.Estado_Usuario %></td>
+                    <td><%= usuario.Role_Usuario %></td>
+                    <td>
+                        <!-- Botón asignaciones -->
+                        <a href="/equipoUsuario/<%= usuario.ID_Usuario %>" class="btn btn-secondary">Asignaciones</a>
+                        <!-- Botón para editar -->
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editUserModal" 
+                            onclick="fillEditForm('<%= usuario.ID_Usuario %>', '<%= usuario.Nombre_Usuario %>', '<%= usuario.ApellidoPaterno_Usuario %>', '<%= usuario.ApellidoMaterno_Usuario %>', '<%= usuario.Correo_Usuario %>', '<%= usuario.Departamento_Usuario_FK %>', '<%= usuario.Puesto_Usuario %>', '<%= usuario.Estado_Usuario %>', '<%= usuario.Role_Usuario %>')">Editar</button>
+                        <!-- Botón para eliminar -->
+                        <button class="btn btn-danger" onclick="confirmDelete('<%= usuario.ID_Usuario %>')">Eliminar</button>
+                        
+                        <!-- Botón para cambiar contraseña -->
+                         <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#changePasswordModal" onclick="fillChangePasswordForm('<%= usuario.ID_Usuario %>', '<%= usuario.Nombre_Usuario %>')">Cambiar Contraseña</button>
+
+                    </td>
+                </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal de creación de usuario -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="createUserForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createUserModalLabel">Crear Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Nombre -->
+                    <div class="mb-3">
+                        <label for="nombreUsuario" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombreUsuario" required>
+                    </div>
+                    <!-- Apellido Paterno -->
+                    <div class="mb-3">
+                        <label for="apellidoPaternoUsuario" class="form-label">Apellido Paterno</label>
+                        <input type="text" class="form-control" id="apellidoPaternoUsuario" required>
+                    </div>
+                    <!-- Apellido Materno -->
+                    <div class="mb-3">
+                        <label for="apellidoMaternoUsuario" class="form-label">Apellido Materno</label>
+                        <input type="text" class="form-control" id="apellidoMaternoUsuario">
+                    </div>
+                    <!-- Correo -->
+                    <div class="mb-3">
+                        <label for="correoUsuario" class="form-label">Correo</label>
+                        <input type="email" class="form-control" id="correoUsuario" required>
+                    </div>
+                    <!-- Departamento -->
+                    <div class="mb-3">
+                        <label for="departamentoUsuario" class="form-label">Departamento</label>
+                        <select class="form-select" id="departamentoUsuario" required>
+                            <option value="">Selecciona un departamento</option>
+                            <% departamentos.forEach(departamento => { %>
+                                <option value="<%= departamento.ID_Departamento %>">
+                                    <%= departamento.Nombre_Departamento %>
+                                </option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <!-- Puesto -->
+                    <div class="mb-3">
+                        <label for="puestoUsuario" class="form-label">Puesto</label>
+                        <input type="text" class="form-control" id="puestoUsuario" required>
+                    </div>
+                    <!-- Estado -->
+                    <div class="mb-3">
+                        <label for="estadoUsuario" class="form-label">Estado</label>
+                        <select class="form-select" id="estadoUsuario" required>
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                    <!-- Rol -->
+                    <div class="mb-3">
+                        <label for="roleUsuario" class="form-label">Rol</label>
+                        <select class="form-select" id="roleUsuario" required>
+                            <option value="admin">Admin</option>
+                            <option value="user">Usuario</option>
+                        </select>
+                    </div>
+                    <!-- Contraseña -->
+                    <div class="mb-3">
+                        <label for="passwordUsuario" class="form-label">Contraseña</label>
+                        <input type="password" class="form-control" id="passwordUsuario" required>
+                    </div>
+                    <!-- Confirmar Contraseña -->
+                    <div class="mb-3">
+                        <label for="confirmPasswordUsuario" class="form-label">Confirmar Contraseña</label>
+                        <input type="password" class="form-control" id="confirmPasswordUsuario" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Modal de edición de usuario -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editUserForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editUserModalLabel">Editar Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- ID del usuario (oculto) -->
+                    <input type="hidden" id="editUserID">
+                    
+                    <!-- Nombre -->
+                    <div class="mb-3">
+                        <label for="editNombreUsuario" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="editNombreUsuario" required>
+                    </div>
+                    
+                    <!-- Apellido Paterno -->
+                    <div class="mb-3">
+                        <label for="editApellidoPaternoUsuario" class="form-label">Apellido Paterno</label>
+                        <input type="text" class="form-control" id="editApellidoPaternoUsuario" required>
+                    </div>
+
+                    <!-- Apellido Materno -->
+                    <div class="mb-3">
+                        <label for="editApellidoMaternoUsuario" class="form-label">Apellido Materno</label>
+                        <input type="text" class="form-control" id="editApellidoMaternoUsuario" required>
+                    </div>
+
+                    <!-- Correo -->
+                    <div class="mb-3">
+                        <label for="editCorreoUsuario" class="form-label">Correo</label>
+                        <input type="email" class="form-control" id="editCorreoUsuario" required>
+                    </div>
+
+                    <!-- Departamento -->
+                    <div class="mb-3">
+                        <label for="editDepartamentoUsuario" class="form-label">Departamento</label>
+                        <select class="form-control" id="editDepartamentoUsuario" required>
+                            <option value="">Seleccione un departamento</option>
+                            <% departamentos.forEach(departamento => { %>
+                                <option value="<%= departamento.ID_Departamento %>"><%= departamento.Nombre_Departamento %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+
+                    <!-- Puesto -->
+                    <div class="mb-3">
+                        <label for="editPuestoUsuario" class="form-label">Puesto</label>
+                        <input type="text" class="form-control" id="editPuestoUsuario" required>
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="mb-3">
+                        <label for="editEstadoUsuario" class="form-label">Estado</label>
+                        <select class="form-control" id="editEstadoUsuario" required>
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                        </select>
+                    </div>
+
+                    <!-- Rol -->
+                    <div class="mb-3">
+                        <label for="editRoleUsuario" class="form-label">Rol</label>
+                        <select class="form-control" id="editRoleUsuario" required>
+                            <option value="admin">Admin</option>
+                            <option value="user">Usuario</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+                <!-- Modal para cambiar contraseña -->
+                <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form id="changePWForm">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="changePasswordModalLabel">Cambiar Contraseña</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <input type="hidden" id="changePasswordUserID">
+                                    <div class="mb-3">
+                                        <label for="changePasswordUserName" class="form-label">Usuario</label>
+                                        <input type="text" class="form-control" id="changePasswordUserName" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="newPassword" class="form-label">Nueva Contraseña</label>
+                                        <input type="password" class="form-control" id="newPassword" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="confirmPassword" class="form-label">Confirmar Contraseña</label>
+                                        <input type="password" class="form-control" id="confirmPassword" required>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-warning">Cambiar Contraseña</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+
+
+    <script>
+
+        document.getElementById('createUserForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+        
+            const nombre = document.getElementById('nombreUsuario').value;
+            const apellidoPaterno = document.getElementById('apellidoPaternoUsuario').value;
+            const apellidoMaterno = document.getElementById('apellidoMaternoUsuario').value;
+            const correo = document.getElementById('correoUsuario').value;
+            const departamento = document.getElementById('departamentoUsuario').value;
+            const puesto = document.getElementById('puestoUsuario').value;
+            const estado = document.getElementById('estadoUsuario').value;
+            const role = document.getElementById('roleUsuario').value;
+            const password = document.getElementById('passwordUsuario').value;
+            const confirmPassword = document.getElementById('confirmPasswordUsuario').value;
+        
+            // Validar que las contraseñas coincidan
+            if (password !== confirmPassword) {
+                alert('Las contraseñas no coinciden. Por favor, verifica e inténtalo de nuevo.');
+                return;
+            }
+        
+            try {
+                const response = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        Nombre_Usuario: nombre,
+                        ApellidoPaterno_Usuario: apellidoPaterno,
+                        ApellidoMaterno_Usuario: apellidoMaterno,
+                        Correo_Usuario: correo,
+                        Password_Usuario: password,
+                        Role_Usuario: role,
+                        Departamento_Usuario_FK: departamento,
+                        Puesto_Usuario: puesto,
+                        Estado_Usuario: estado,
+                    })
+                });
+        
+                const result = await response.json();
+        
+                if (response.ok) {
+                    alert('Usuario registrado exitosamente');
+                    location.reload();
+                } else {
+                    alert(`Error: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Error al registrar usuario:', error);
+                alert('Error al registrar usuario');
+            }
+        });
+        
+
+        function fillEditForm(id, nombre, apellidoPaterno, apellidoMaterno, correo, departamento, puesto, estado, role) {
+            document.getElementById('editUserID').value = id;
+            document.getElementById('editNombreUsuario').value = nombre;
+            document.getElementById('editApellidoPaternoUsuario').value = apellidoPaterno;
+            document.getElementById('editApellidoMaternoUsuario').value = apellidoMaterno;
+            document.getElementById('editCorreoUsuario').value = correo;
+            document.getElementById('editDepartamentoUsuario').value = departamento;
+            document.getElementById('editPuestoUsuario').value = puesto;
+            document.getElementById('editEstadoUsuario').value = estado;
+            document.getElementById('editRoleUsuario').value = role;
+        } 
+        document.getElementById('editUserForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        
+        const id = document.getElementById('editUserID').value;
+        const nombre = document.getElementById('editNombreUsuario').value;
+        const apellidoPaterno = document.getElementById('editApellidoPaternoUsuario').value;
+        const apellidoMaterno = document.getElementById('editApellidoMaternoUsuario').value;
+        const correo = document.getElementById('editCorreoUsuario').value;
+        const departamento = document.getElementById('editDepartamentoUsuario').value;
+        const puesto = document.getElementById('editPuestoUsuario').value;
+        const estado = document.getElementById('editEstadoUsuario').value;
+        const role = document.getElementById('editRoleUsuario').value;
+
+        try {
+            const response = await fetch(`/users/edit/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    Nombre_Usuario: nombre,
+                    ApellidoPaterno_Usuario: apellidoPaterno,
+                    ApellidoMaterno_Usuario: apellidoMaterno,
+                    Correo_Usuario: correo,
+                    Departamento_Usuario_FK: departamento,
+                    Puesto_Usuario: puesto,
+                    Estado_Usuario: estado,
+                    Role_Usuario: role
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('Usuario actualizado exitosamente');
+                location.reload();
+            } else {
+                alert(`Error: ${result.message}`);
+            }
+        } catch (error) {
+            console.log('Error al actualizar usuario:', error);
+            console.error('Error al actualizar usuario:', error);
+            alert('Error al actualizar usuario');
+        }
+    });
+
+
+    function fillChangePasswordForm(userID, userName) {
+        // Llenar el formulario con los datos
+        document.getElementById('changePasswordUserID').value = userID;
+        document.getElementById('changePasswordUserName').value = userName;
+    
+        // Seleccionar el modal y mostrarlo
+        const modal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+        modal.show();
+    }
+    
+
+    // Manejar el envío del formulario de cambio de contraseña
+    
+    document.getElementById('changePWForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const userID = document.getElementById('changePasswordUserID').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (newPassword !== confirmPassword) {
+            alert('Las contraseñas no coinciden');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/auth/change-password/${userID}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newPassword })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('Contraseña actualizada exitosamente');
+                location.reload();
+            } else {
+                alert(`Error: ${result.message}`);
+            }
+        } catch (error) {
+            console.error('Error al cambiar la contraseña:', error);
+            alert('Error al cambiar la contraseña');
+        }
+    });
+    
+       
+    </script>
+    
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

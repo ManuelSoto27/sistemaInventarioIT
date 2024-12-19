@@ -4,10 +4,17 @@ const sequelize = require('./config/database');
 const userRoutes = require('./routes/users');
 const authRoutes = require('./routes/auth');
 const equipoRoutes = require('./routes/equipos');
+const departamentoRoutes = require('./routes/departamentos');
+const tipoEquipoRoutes = require('./routes/tipoEquipo');
+const equipoUsuarioRoutes = require('./routes/equipoUsuario');
+
+
+app.use(express.urlencoded({ extended: true }));
+
 const cookieParser = require('cookie-parser'); // Importa cookie-parser
 const path = require('path');
 
-// Configurar EJS como motor de vistas
+// Configurar EJS y layouts
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views')); // Carpeta donde estarán las vistas
 
@@ -24,7 +31,6 @@ app.get('/', (req, res) => {
 
 /*
 const equipoRoutes = require('./routes/equipos');
-const departamentoRoutes = require('./routes/departamentos');
 const tipoEquipoRoutes = require('./routes/tipoEquipos');
 const equipoUsuarioRoutes = require('./routes/equipoUsuario');
 */
@@ -36,6 +42,16 @@ app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 
 app.use('/equipos', equipoRoutes);
+
+app.use('/departamentos', departamentoRoutes);
+
+app.use('/tipoEquipo', tipoEquipoRoutes);
+
+app.use('/equipoUsuario', equipoUsuarioRoutes);
+
+
+
+
 
 
 

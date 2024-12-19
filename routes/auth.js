@@ -25,6 +25,8 @@ router.post('/register', authController.register);
 // Ruta para redirigir según el rol
 router.get('/redirigirMenu', verifyToken, authController.redirigirMenu);
 
+router.put('/change-password/:userID', authController.changePassword);
+
 
 
 module.exports = router;
